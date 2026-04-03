@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LEGO Koleksiyonum</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d11212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(() => console.log("Service Worker Kaydedildi"))
+          .catch(err => console.log("Hata:", err));
+      }
+    </script>
+
+    <style>
+        :root {
+            --primary-navy: #002b5c; 
+            --lego-red: #d11212;
+            --lego-yellow: #ffcf00;
+            --success-green: #28a745;
+            --accent-blue: #005596;
+            --excel-green: #217346;
+            --bg-light: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-dark: #1a1a1a;
+            --border-color: #dee2e6;
+        }
+
+        body.dark-mode {
+            --bg-light: #0f172a;
+            --card-bg: #1e293b;
+            --text-dark: #f8fafc;
+            --border-color: #334155;
+            --primary-navy: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0; padding: 20px; transition: 0.3s;
+            padding-bottom: 120px; /* Alttaki panel için boşluk */
+        }
+
+        .container { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 25px; }
+
+        header {
+            grid-column: 1 / -1;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 25px; background: var(--primary-navy); color: white;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropbtn {
+            background-color: var(--lego-red); color: white; padding: 10px 15px;
+            font-size: 13px; font-weight: bold; border: none; border-radius: 8px;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+
+        .dropdown-content {
+            display: none; position: absolute; right: 0; background-color: var(--card-bg);
+            min-width: 220px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 3000;
+            border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);
+        }
+
+        .dropdown-content a {
+            color: var(--text-dark); padding: 12px 16px; text-decoration: none;
+            display: flex; justify-content: space-between; font-size: 13px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dropdown:hover .dropdown-content { display: block; }
+
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .last-added-card {
+            background: var(--card-bg); padding: 15px; border-radius: 12px;
+            border-top: 5px solid var(--lego-red); box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
+        }
+        .last-added-card img { width: 100%; height: 130px; object-fit: contain; }
+
+        .controls {
+            background: var(--card-bg); padding: 20px; border-radius: 12px;
+            display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .panel h4 { margin: 0 0 10px 0; color: var(--accent-blue); font-size: 15px; }
+        input, select { padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-dark); width: 100%; box-sizing: border-box; font-size: 16px; /* Mobilde zoom yapmaması için 16px */ }
+
+        .category-section {
+            background: var(--card-bg); padding: 25px; border-radius: 12px;
+            margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 6px solid;
+        }
+
+        .category-content.hidden { display: none; }
+        .toggle-btn {
+            background: #eee; border: none; border-radius: 4px;
+            width: 32px; height: 32px; cursor: pointer;
+            font-size: 20px; font-weight: bold; margin-right: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
+        
+        .set-card {
+            position: relative; border: 1px solid var(--border-color); padding: 15px;
+            border-radius: 10px; text-align: center; background: rgba(0,0,0,0.02); transition: 0.2s;
+        }
+        .set-card img { width: 100%; height: 110px; object-fit: contain; }
+
+        .quantity-badge {
+            position: absolute; top: 10px; left: 10px; background: var(--lego-red);
+            color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; z-index: 5;
+        }
+
+        .btn-akakce {
+            position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
+            background: #fff; border: 1px solid #ddd; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+        }
+
+        .btn { border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; padding: 12px; font-size: 13px; transition: 0.2s; width: 100%; }
+        .btn-add { background-color: var(--accent-blue); }
+        .btn-cat { background-color: var(--success-green); }
+        .btn-delete-set { background-color: #dc3545; margin-top: 8px; }
+
+        /* Araç Butonları */
+        .top-left-tools { position: fixed; top: 100px; left: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+        .bottom-left-tools { position: fixed; bottom: 120px; left: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+        .tool-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--primary-navy); color: white; border: 2px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 18px; }
+
+        /* Alt Toplam Paneli */
+        .total-panel {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--primary-navy); color: white;
+            padding: 15px 20px; text-align: left;
+            border-top: 4px solid var(--lego-yellow);
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+            display: flex; flex-direction: row; justify-content: space-around;
+            z-index: 4000; font-size: 13px;
+        }
+        .total-panel div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .total-val { color: var(--lego-yellow); font-weight: bold; font-size: 15px; }
+
+        /* --- MOBIL UYUMLULUK (RESPONSIVE) --- */
+        @media (max-width: 850px) {
+            body { padding: 10px; padding-bottom: 140px; }
+            .container { grid-template-columns: 1fr; gap: 15px; }
+            header { padding: 10px 15px; flex-direction: column; gap: 10px; text-align: center; }
+            .sidebar { order: 2; } /* Formları alta al */
+            .main-content { order: 1; } /* Koleksiyonu üste al */
+            
+            .top-left-tools { 
+                position: static; flex-direction: row; justify-content: center; 
+                margin: 10px 0; order: 3; 
+            }
+            .bottom-left-tools { display: none; } /* Mobilde gerek yok */
+            
+            .set-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+            .category-section { padding: 15px; }
+            
+            .total-panel { padding: 10px 5px; }
+            .total-panel div { font-size: 11px; }
+            .total-val { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h2 style="margin:0; font-size: 18px;">🧱 LEGO KOLEKSİYONUM</h2>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <span style="font-size: 12px; background: var(--lego-red); padding: 5px 10px; border-radius: 20px;">Adet: <span id="grandTotalCount">0</span></span>
+        <div class="dropdown">
+            <button class="dropbtn">Menü ▼</button>
+            <div class="dropdown-content" id="catDropdown"></div>
+        </div>
+    </div>
+</header>
+
+<div class="top-left-tools">
+    <button class="tool-btn" onclick="verileriYedekle()" title="Yedek İndir">📥</button>
+    <button class="tool-btn" onclick="document.getElementById('importInput').click()" title="Yedek Yükle">📤</button>
+    <button class="tool-btn" onclick="excelTablosuOlustur()" title="Excel" style="background: var(--excel-green);">📊</button>
+    <button class="tool-btn" onclick="toggleDarkMode()">🌓</button>
+    <button class="tool-btn" onclick="tumunuTemizle()" title="Sil" style="background: #dc3545;">🗑️</button>
+    <input type="file" id="importInput" style="display:none" onchange="verileriYukle(event)">
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <div id="lastAddedContainer" class="last-added-card">
+            <h4 style="margin:0 0 5px 0; color:var(--lego-red)">Son Eklenen</h4>
+            <div id="lastAddedContent" style="font-size: 11px; font-weight: bold;">Henüz yok.</div>
+        </div>
+        <div class="controls">
+            <div class="panel">
+                <h4>Kategori Ekle</h4>
+                <input type="text" id="newCatInput" placeholder="Örn: Technic">
+                <button class="btn btn-cat" style="margin-top:8px" onclick="kategoriEkle()">+ Kategori Oluştur</button>
+            </div>
+            <div class="panel">
+                <h4>Yeni Set</h4>
+                <input type="text" id="setNo" placeholder="Set Kodu (Örn: 42151)">
+                <input type="number" id="priceInput" style="margin-top:8px" placeholder="Alış Fiyatı (TL)">
+                <select id="categorySelect" style="margin-top:8px"></select>
+                <button class="btn btn-add" style="margin-top:8px" onclick="setGetir()">Koleksiyona Ekle</button>
+            </div>
+            <button class="btn" style="background:#6c757d" onclick="uygulamayiYukle()">📲 Uygulamayı Telefona İndir</button>
+        </div>
+    </div>
+    <div class="main-content" id="mainDisplay"></div>
+</div>
+
+<div class="total-panel">
+    <div><span>Parça</span><span id="totalParts" class="total-val">0</span></div>
+    <div><span>Güncel</span><span id="totalCurrent" class="total-val">0</span></div>
+    <div><span>Maliyet</span><span id="totalTaken" class="total-val">0</span></div>
+</div>
+
+<script>
+    const API_KEY = 'cb314abb53484a336a883279c8ce626c'; 
+    const DB_NAME = 'LegoKoleksiyonDeneme'; // Yeni DB isminiz kalıyor
+    const DB_VERSION = 1;
+
+    let db;
+    let koleksiyon = {};
+    let kategoriRenkleri = {};
+    let sonSet = null;
+    let gecmis = [];
+    let isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+    // PWA Yükleme Tetikleyicisi
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+    });
+
+    function uygulamayiYukle() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+        } else {
+            alert("Uygulama zaten yüklü veya tarayıcınız desteklemiyor (Chrome kullanın).");
+        }
+    }
+
+    // --- Veritabanı ve Çizim Fonksiyonları (Mevcut mantığınız korunmuştur) ---
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+            request.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains('data')) database.createObjectStore('data');
+            };
+        });
+    }
+
+    async function dbGet(key) {
+        return new Promise((resolve) => {
+            if (!db) return resolve(null);
+            const transaction = db.transaction(['data'], 'readonly');
+            const request = transaction.objectStore('data').get(key);
+            request.onsuccess = () => resolve(request.result);
+        });
+    }
+
+    async function dbSet(key, val) {
+        return new Promise((resolve) => {
+            if (!db) return resolve();
+            const transaction = db.transaction(['data'], 'readwrite');
+            transaction.objectStore('data').put(val, key);
+            transaction.oncomplete = () => resolve();
+        });
+    }
+
+    async function init() {
+        await initDB();
+        koleksiyon = await dbGet('koleksiyon') || {};
+        kategoriRenkleri = await dbGet('renkler') || {};
+        sonSet = await dbGet('sonSet') || null;
+        if(isDarkMode) document.body.classList.add('dark-mode');
+        dropdownGuncelle();
+        ekranıCiz();
+        sonSetiGoster();
+    }
+
+    async function kaydet(yedekle = true) {
+        if (yedekle) {
+            gecmis.push(JSON.parse(JSON.stringify(koleksiyon)));
+            if (gecmis.length > 10) gecmis.shift();
+        }
+        await dbSet('koleksiyon', koleksiyon);
+        await dbSet('renkler', kategoriRenkleri);
+        await dbSet('sonSet', sonSet);
+        ekranıCiz();
+    }
+
+    function toggleDarkMode() {
+        isDarkMode = !isDarkMode;
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    function toggleCategory(kat) {
+        const content = document.getElementById(`content-${kat}`);
+        const btn = document.getElementById(`btn-${kat}`);
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            btn.innerText = '−';
+        } else {
+            content.classList.add('hidden');
+            btn.innerText = '+';
+        }
+    }
+
+    async function setGetir() {
+        const setNo = document.getElementById('setNo').value.trim();
+        const fiyat = parseFloat(document.getElementById('priceInput').value) || 0;
+        const kat = document.getElementById('categorySelect').value;
+        if(!kat || !setNo) return alert("Eksik bilgi!");
+
+        if (!koleksiyon[kat]) koleksiyon[kat] = [];
+        const existingSet = koleksiyon[kat].find(s => s.id === `${setNo}-1` || s.id === setNo);
+
+        if (existingSet) {
+            existingSet.quantity = (existingSet.quantity || 1) + 1;
+            existingSet.takenPrice += fiyat;
+            sonSet = existingSet;
+            await kaydet();
+        } else {
+            try {
+                const response = await fetch(`https://rebrickable.com/api/v3/lego/sets/${setNo}-1/`, {
+                    headers: { 'Authorization': `key ${API_KEY}` }
+                });
+                const data = await response.json();
+                if(data.detail) throw new Error("Set bulunamadı.");
+                const yeniSet = { id: data.set_num, name: data.name, img: data.set_img_url, parts: data.num_parts || 0, takenPrice: fiyat, currentPrice: 0, quantity: 1 };
+                koleksiyon[kat].push(yeniSet);
+                sonSet = yeniSet;
+                await kaydet();
+            } catch (e) { alert(e.message); }
+        }
+        document.getElementById('setNo').value = ''; document.getElementById('priceInput').value = '';
+        sonSetiGoster();
+    }
+
+    async function kategoriEkle() {
+        const isim = document.getElementById('newCatInput').value.trim();
+        if(isim && !koleksiyon[isim]) {
+            koleksiyon[isim] = [];
+            kategoriRenkleri[isim] = `hsl(${Math.random() * 360}, 60%, 45%)`;
+            document.getElementById('newCatInput').value = '';
+            await kaydet(); dropdownGuncelle();
+        }
+    }
+
+    function dropdownGuncelle() {
+        const select = document.getElementById('categorySelect');
+        const drop = document.getElementById('catDropdown');
+        if(!select) return;
+        select.innerHTML = Object.keys(koleksiyon).map(k => `<option value="${k}">${k}</option>`).join('');
+        drop.innerHTML = Object.keys(koleksiyon).map(k => `<a href="#cat-${k}">${k}</a>`).join('');
+    }
+
+    function sonSetiGoster() {
+        const container = document.getElementById('lastAddedContent');
+        if(!sonSet) return;
+        container.innerHTML = `<img src="${sonSet.img}" style="height:60px; object-fit:contain"><br>${sonSet.name}`;
+    }
+
+    async function setSil(kat, idx) {
+        const set = koleksiyon[kat][idx];
+        if (set.quantity > 1) {
+            set.takenPrice -= (set.takenPrice / set.quantity);
+            set.quantity -= 1;
+        } else {
+            koleksiyon[kat].splice(idx, 1);
+        }
+        await kaydet();
+    }
+
+    async function guncelFiyatDegistir(kat, idx, v) { koleksiyon[kat][idx].currentPrice = parseFloat(v) || 0; await kaydet(); }
+    async function alisFiyatDegistir(kat, idx, v) { koleksiyon[kat][idx].takenPrice = parseFloat(v) || 0; await kaydet(); }
+
+    function ekranıCiz() {
+        const display = document.getElementById('mainDisplay');
+        display.innerHTML = '';
+        let tTaken = 0, tCurrent = 0, tParts = 0, tSets = 0;
+
+        Object.keys(koleksiyon).forEach(kat => {
+            const renk = kategoriRenkleri[kat];
+            const katDiv = document.createElement('div');
+            katDiv.className = 'category-section';
+            katDiv.id = `cat-${kat}`;
+            katDiv.style.borderTopColor = renk;
+
+            let html = `<div style="display:flex; align-items:center; margin-bottom:15px;">
+                <button class="toggle-btn" onclick="toggleCategory('${kat}')" id="btn-${kat}">−</button>
+                <h3 style="margin:0; color:${renk}">${kat}</h3>
+            </div><div class="category-content" id="content-${kat}"><div class="set-grid">`;
+
+            koleksiyon[kat].forEach((set, idx) => {
+                const qty = set.quantity || 1;
+                tTaken += set.takenPrice; tCurrent += (set.currentPrice * qty); tParts += (set.parts * qty); tSets += qty;
+                html += `<div class="set-card">
+                    <div class="quantity-badge">${qty}x</div>
+                    <a href="https://www.akakce.com/arama/?q=lego+${set.id}" target="_blank" class="btn-akakce">🔍</a>
+                    <img src="${set.img}">
+                    <div style="font-size:11px; font-weight:bold; margin:5px 0;">${set.name}</div>
+                    <div style="font-size:10px; color:gray;">🧩 ${set.parts * qty} Parça</div>
+                    <input type="number" style="font-size:11px; padding:5px; margin-top:5px" placeholder="Alış: ${set.takenPrice}" onchange="alisFiyatDegistir('${kat}', ${idx}, this.value)">
+                    <input type="number" style="font-size:11px; padding:5px; margin-top:5px" placeholder="Güncel: ${set.currentPrice}" onchange="guncelFiyatDegistir('${kat}', ${idx}, this.value)">
+                    <button class="btn btn-delete-set" style="padding:5px; font-size:10px;" onclick="setSil('${kat}', ${idx})">Sil</button>
+                </div>`;
+            });
+            html += `</div></div>`;
+            katDiv.innerHTML = html; display.appendChild(katDiv);
+        });
+
+        document.getElementById('grandTotalCount').innerText = tSets;
+        document.getElementById('totalParts').innerText = tParts.toLocaleString();
+        document.getElementById('totalCurrent').innerText = tCurrent.toLocaleString() + " ₺";
+        document.getElementById('totalTaken').innerText = tTaken.toLocaleString() + " ₺";
+    }
+
+    function verileriYedekle() {
+        const blob = new Blob([JSON.stringify({koleksiyon, renkler: kategoriRenkleri, sonSet})], {type: "application/json"});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `lego_yedek.json`;
+        link.click();
+    }
+
+    async function verileriYukle(e) {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            const data = JSON.parse(event.target.result);
+            koleksiyon = data.koleksiyon; kategoriRenkleri = data.renkler; sonSet = data.sonSet;
+            await kaydet(); dropdownGuncelle();
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    init();
+</script>
+</body>
+</html>
