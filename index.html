@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LEGO Koleksiyonum</title>
+    <title>Koleksiyonum</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#d11212">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,8 +20,8 @@
     <style>
         :root {
             --primary-navy: #002b5c; 
-            --lego-red: #d11212;
-            --lego-yellow: #ffcf00;
+            --brick-red: #d11212;
+            --brick-yellow: #ffcf00;
             --success-green: #28a745;
             --accent-blue: #005596;
             --excel-green: #217346;
@@ -58,7 +58,7 @@
 
         .dropdown { position: relative; display: inline-block; }
         .dropbtn {
-            background-color: var(--lego-red); color: white; padding: 10px 15px;
+            background-color: var(--brick-red); color: white; padding: 10px 15px;
             font-size: 13px; font-weight: bold; border: none; border-radius: 8px;
             cursor: pointer; display: flex; align-items: center; gap: 8px;
         }
@@ -80,7 +80,7 @@
         .sidebar { display: flex; flex-direction: column; gap: 20px; }
         .last-added-card {
             background: var(--card-bg); padding: 15px; border-radius: 12px;
-            border-top: 5px solid var(--lego-red); box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
+            border-top: 5px solid var(--brick-red); box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;
         }
         .last-added-card img { width: 100%; height: 130px; object-fit: contain; }
 
@@ -90,7 +90,7 @@
         }
 
         .panel h4 { margin: 0 0 10px 0; color: var(--accent-blue); font-size: 15px; }
-        input, select { padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-dark); width: 100%; box-sizing: border-box; font-size: 16px; /* Mobilde zoom yapmaması için 16px */ }
+        input, select { padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--card-bg); color: var(--text-dark); width: 100%; box-sizing: border-box; font-size: 16px; }
 
         .category-section {
             background: var(--card-bg); padding: 25px; border-radius: 12px;
@@ -114,7 +114,7 @@
         .set-card img { width: 100%; height: 110px; object-fit: contain; }
 
         .quantity-badge {
-            position: absolute; top: 10px; left: 10px; background: var(--lego-red);
+            position: absolute; top: 10px; left: 10px; background: var(--brick-red);
             color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; z-index: 5;
         }
 
@@ -129,37 +129,34 @@
         .btn-cat { background-color: var(--success-green); }
         .btn-delete-set { background-color: #dc3545; margin-top: 8px; }
 
-        /* Araç Butonları */
         .top-left-tools { position: fixed; top: 100px; left: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
         .bottom-left-tools { position: fixed; bottom: 120px; left: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
         .tool-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--primary-navy); color: white; border: 2px solid white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 18px; }
 
-        /* Alt Toplam Paneli */
         .total-panel {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: var(--primary-navy); color: white;
             padding: 15px 20px; text-align: left;
-            border-top: 4px solid var(--lego-yellow);
+            border-top: 4px solid var(--brick-yellow);
             box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
             display: flex; flex-direction: row; justify-content: space-around;
             z-index: 4000; font-size: 13px;
         }
         .total-panel div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .total-val { color: var(--lego-yellow); font-weight: bold; font-size: 15px; }
+        .total-val { color: var(--brick-yellow); font-weight: bold; font-size: 15px; }
 
-        /* --- MOBIL UYUMLULUK (RESPONSIVE) --- */
         @media (max-width: 850px) {
             body { padding: 10px; padding-bottom: 140px; }
             .container { grid-template-columns: 1fr; gap: 15px; }
             header { padding: 10px 15px; flex-direction: column; gap: 10px; text-align: center; }
-            .sidebar { order: 2; } /* Formları alta al */
-            .main-content { order: 1; } /* Koleksiyonu üste al */
+            .sidebar { order: 2; }
+            .main-content { order: 1; }
             
             .top-left-tools { 
                 position: static; flex-direction: row; justify-content: center; 
                 margin: 10px 0; order: 3; 
             }
-            .bottom-left-tools { display: none; } /* Mobilde gerek yok */
+            .bottom-left-tools { display: none; }
             
             .set-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
             .category-section { padding: 15px; }
@@ -173,9 +170,9 @@
 <body>
 
 <header>
-    <h2 style="margin:0; font-size: 18px;">🧱 LEGO KOLEKSİYONUM</h2>
+    <h2 style="margin:0; font-size: 18px;">🧱 BRICK KOLEKSİYONUM</h2>
     <div style="display: flex; gap: 10px; align-items: center;">
-        <span style="font-size: 12px; background: var(--lego-red); padding: 5px 10px; border-radius: 20px;">Adet: <span id="grandTotalCount">0</span></span>
+        <span style="font-size: 12px; background: var(--brick-red); padding: 5px 10px; border-radius: 20px;">Adet: <span id="grandTotalCount">0</span></span>
         <div class="dropdown">
             <button class="dropbtn">Menü ▼</button>
             <div class="dropdown-content" id="catDropdown"></div>
@@ -195,7 +192,7 @@
 <div class="container">
     <div class="sidebar">
         <div id="lastAddedContainer" class="last-added-card">
-            <h4 style="margin:0 0 5px 0; color:var(--lego-red)">Son Eklenen</h4>
+            <h4 style="margin:0 0 5px 0; color:var(--brick-red)">Son Eklenen</h4>
             <div id="lastAddedContent" style="font-size: 11px; font-weight: bold;">Henüz yok.</div>
         </div>
         <div class="controls">
@@ -225,7 +222,7 @@
 
 <script>
     const API_KEY = 'c10a8ebe89136b8802982ac9523cd8bf'; 
-    const DB_NAME = 'LegoKoleksiyonDeneme'; // Yeni DB isminiz kalıyor
+    const DB_NAME = 'BrickKoleksiyonDeneme'; 
     const DB_VERSION = 1;
 
     let db;
@@ -235,7 +232,6 @@
     let gecmis = [];
     let isDarkMode = localStorage.getItem('darkMode') === 'true';
 
-    // PWA Yükleme Tetikleyicisi
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -251,7 +247,6 @@
         }
     }
 
-    // --- Veritabanı ve Çizim Fonksiyonları (Mevcut mantığınız korunmuştur) ---
     function initDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -435,7 +430,7 @@
         const blob = new Blob([JSON.stringify({koleksiyon, renkler: kategoriRenkleri, sonSet})], {type: "application/json"});
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `lego_yedek.json`;
+        link.download = `brick_yedek.json`;
         link.click();
     }
 
