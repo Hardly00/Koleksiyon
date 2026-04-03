@@ -9,6 +9,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
@@ -44,7 +46,12 @@
             background-color: var(--bg-light);
             color: var(--text-dark);
             margin: 0; padding: 20px; transition: 0.3s;
-            padding-bottom: 120px; /* Alttaki panel için boşluk */
+            padding-bottom: 120px;
+        }
+
+        /* UYGULAMA MODUNDA İNDİRME BUTONUNU GİZLE */
+        @media (display-mode: standalone) {
+            #installAppBtn { display: none !important; }
         }
 
         .container { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 25px; }
@@ -127,6 +134,7 @@
         .btn { border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; padding: 12px; font-size: 13px; transition: 0.2s; width: 100%; }
         .btn-add { background-color: var(--accent-blue); }
         .btn-cat { background-color: var(--success-green); }
+        .btn-scan { background-color: var(--primary-navy); margin-top: 5px; }
         .btn-delete-set { background-color: #dc3545; margin-top: 8px; }
 
         .top-left-tools { position: fixed; top: 100px; left: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
@@ -144,6 +152,8 @@
         }
         .total-panel div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
         .total-val { color: var(--brick-yellow); font-weight: bold; font-size: 15px; }
+
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; }
 
         @media (max-width: 850px) {
             body { padding: 10px; padding-bottom: 140px; }
@@ -203,12 +213,14 @@
             </div>
             <div class="panel">
                 <h4>Yeni Set</h4>
-                <input type="text" id="setNo" placeholder="Set Kodu (Örn: 42151)">
+                <div id="reader" style="display:none;"></div>
+                <button id="scanBtn" class="btn btn-scan" onclick="barkodTarayiciyiBaslat()">📷 Barkod Tara</button>
+                <input type="text" id="setNo" placeholder="Set Kodu (Örn: 42151)" style="margin-top:8px">
                 <input type="number" id="priceInput" style="margin-top:8px" placeholder="Alış Fiyatı (TL)">
                 <select id="categorySelect" style="margin-top:8px"></select>
                 <button class="btn btn-add" style="margin-top:8px" onclick="setGetir()">Koleksiyona Ekle</button>
             </div>
-            <button class="btn" style="background:#6c757d" onclick="uygulamayiYukle()">📲 Uygulamayı Telefona İndir</button>
+            <button id="installAppBtn" class="btn" style="background:#6c757d" onclick="uygulamayiYukle()">📲 Uygulamayı Telefona İndir</button>
         </div>
     </div>
     <div class="main-content" id="mainDisplay"></div>
@@ -245,6 +257,44 @@
         } else {
             alert("Uygulama zaten yüklü veya tarayıcınız desteklemiyor (Chrome kullanın).");
         }
+    }
+
+    // BARKOD TARAYICI FONKSİYONU
+    let html5QrCode;
+    function barkodTarayiciyiBaslat() {
+        const readerDiv = document.getElementById('reader');
+        const scanBtn = document.getElementById('scanBtn');
+        
+        if (readerDiv.style.display === 'block') {
+            if(html5QrCode) html5QrCode.stop();
+            readerDiv.style.display = 'none';
+            scanBtn.innerText = "📷 Barkod Tara";
+            return;
+        }
+
+        readerDiv.style.display = 'block';
+        scanBtn.innerText = "❌ Taramayı Kapat";
+        
+        html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            config, 
+            (decodedText) => {
+                // Barkod okundu
+                document.getElementById('setNo').value = decodedText;
+                html5QrCode.stop().then(() => {
+                    readerDiv.style.display = 'none';
+                    scanBtn.innerText = "📷 Barkod Tara";
+                    setGetir(); // Otomatik ekleme tetikle
+                });
+            }
+        ).catch(err => {
+            alert("Kamera izni gerekli!");
+            readerDiv.style.display = 'none';
+            scanBtn.innerText = "📷 Barkod Tara";
+        });
     }
 
     function initDB() {
