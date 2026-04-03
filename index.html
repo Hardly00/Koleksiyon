@@ -380,7 +380,6 @@
     async function fiyatSil(kat, idx) { koleksiyon[kat][idx].currentPrice = 0; await dbSet('koleksiyon', koleksiyon); ekranıCiz(); }
     async function setSil(kat, idx) { if(confirm("Silinsin mi?")) { koleksiyon[kat].splice(idx, 1); await dbSet('koleksiyon', koleksiyon); ekranıCiz(); } }
     
-    // HEPSİNİ SİL FONKSİYONU
     async function hepsiniSil() {
         if(confirm("Eğer evet derseniz eklenen tüm setler silinecektir (Yedek Alınız).")) {
             koleksiyon = {};
