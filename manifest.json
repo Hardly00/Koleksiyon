@@ -1,6 +1,6 @@
 {
   "name": "Koleksiyonum",
-  "short_name": "LegoApp",
+  "short_name": "Collection",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#002b5c",
