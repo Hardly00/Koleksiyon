@@ -3,8 +3,8 @@
   "short_name": "Collection",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#002b5c",
-  "theme_color": "#d11212",
+  "background_color": "#C7C6C2",
+  "theme_color": "#FFFFFF",
   "icons": [
     {
       "src": "icon-192.png",
